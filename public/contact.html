@@ -16,7 +16,7 @@
           <ul>
             <li><a href="#about">About</a></li>
             <li><a href="#services">Services</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="contact.html">Contact</a></li>
           </ul>
         </nav>
       </div>
@@ -139,6 +139,35 @@
         document.getElementById("sidebar").classList.toggle("active");
         document.getElementById("overlay").classList.toggle("active");
       }
+
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const formData = new FormData(event.target);
+          const formObject = Object.fromEntries(formData.entries());
+
+          try {
+            const response = await fetch("/contact/submit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formObject),
+            });
+
+            if (response.ok) {
+              alert("Form submitted successfully");
+              window.location.href = "/";
+            } else {
+              alert("Failed to submit the form. Please try again.");
+            }
+          } catch (error) {
+            console.error("Error submitting form:", error);
+            alert("Failed to submit the form. Please try again.");
+          }
+        });
     </script>
   </body>
 </html>

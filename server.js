@@ -5,12 +5,13 @@ const bodyParser = require("body-parser");
 require("dotenv").config();
 
 const app = express();
-
+const MONGODBURI =
+  "mongodb+srv://abhipippalla:d8E2PpZ6TpBYeMAo@drar.mqlgngv.mongodb.net/drar?retryWrites=true&w=majority";
 // MongoDB connection
-const uri = process.env.MONGODB_URI;
+const uri = MONGODBURI;
 mongoose
   .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB connected"))
+  .then(() => console.log("MongoDB connected to drar database"))
   .catch((err) => console.log(err));
 
 // Body parser middleware
@@ -28,6 +29,10 @@ app.get("/", (req, res) => {
 // Contact form route
 const contactRoute = require("./routes/contact");
 app.use("/contact", contactRoute);
+
+// Admin routes
+const adminRoute = require("./routes/admin");
+app.use("/admin", adminRoute);
 
 // Define a port to listen on
 const PORT = process.env.PORT || 3000;

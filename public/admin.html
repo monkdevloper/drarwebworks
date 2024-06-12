@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="style2.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Admin Dashboard</h1>
+      <div class="header-buttons">
+        <button onclick="showCreateForm()">Create New Contact</button>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </header>
+    <div class="container">
+      <h2>Contact List</h2>
+      <div id="contacts"></div>
+    </div>
+
+    <!-- Create Contact Form -->
+    <div id="createFormContainer" style="display: none">
+      <h2>Create New Contact</h2>
+      <form id="createContactForm">
+        <div>
+          <label for="createName">Name:</label>
+          <input type="text" id="createName" name="name" required />
+        </div>
+        <div>
+          <label for="createDomain">Domain:</label>
+          <input type="text" id="createDomain" name="domain" required />
+        </div>
+        <div>
+          <label for="createTopic">Topic:</label>
+          <textarea id="createTopic" name="topic"></textarea>
+        </div>
+        <div>
+          <label for="createPaperType">Paper Type:</label>
+          <input type="text" id="createPaperType" name="paperType" required />
+        </div>
+        <div>
+          <label for="createNotes">Notes:</label>
+          <textarea id="createNotes" name="notes"></textarea>
+        </div>
+        <div>
+          <label for="createNumber">Number:</label>
+          <input type="text" id="createNumber" name="number" required />
+        </div>
+        <button type="submit">Create Contact</button>
+      </form>
+    </div>
+
+    <!-- Edit Contact Form -->
+    <div id="editFormContainer" style="display: none">
+      <h2>Edit Contact</h2>
+      <form id="editContactForm">
+        <input type="hidden" id="editContactId" />
+        <div>
+          <label for="editName">Name:</label>
+          <input type="text" id="editName" name="name" required />
+        </div>
+        <div>
+          <label for="editDomain">Domain:</label>
+          <input type="text" id="editDomain" name="domain" required />
+        </div>
+        <div>
+          <label for="editTopic">Topic:</label>
+          <textarea id="editTopic" name="topic"></textarea>
+        </div>
+        <div>
+          <label for="editPaperType">Paper Type:</label>
+          <input type="text" id="editPaperType" name="paperType" required />
+        </div>
+        <div>
+          <label for="editNotes">Notes:</label>
+          <textarea id="editNotes" name="notes"></textarea>
+        </div>
+        <div>
+          <label for="editNumber">Number:</label>
+          <input type="text" id="editNumber" name="number" required />
+        </div>
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+
+    <script>
+      async function fetchContacts() {
+        const token = localStorage.getItem("token");
+        const response = await fetch("/admin/contacts", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          displayContacts(data.contacts);
+        } else {
+          alert(data.message);
+        }
+      }
+
+      function displayContacts(contacts) {
+        const contactsDiv = document.getElementById("contacts");
+        contactsDiv.innerHTML = contacts
+          .map(
+            (contact) => `
+        <div class="contact">
+          <p><strong>Name:</strong> ${contact.name}</p>
+          <p><strong>Domain:</strong> ${contact.domain}</p>
+          <p><strong>Topic:</strong> ${contact.topic}</p>
+          <p><strong>Paper Type:</strong> ${contact.paperType}</p>
+          <p><strong>Notes:</strong> ${contact.notes}</p>
+          <p><strong>Number:</strong> ${contact.number}</p>
+          <button onclick="deleteContact('${contact._id}')">Delete</button>
+          <button onclick="showEditForm('${contact._id}', '${contact.name}', '${contact.domain}', '${contact.topic}', '${contact.paperType}', '${contact.notes}', '${contact.number}')">Edit</button>
+        </div>
+      `
+          )
+          .join("");
+      }
+
+      async function deleteContact(id) {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`/admin/contacts/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          fetchContacts();
+        } else {
+          alert(data.message);
+        }
+      }
+
+      function showEditForm(id, name, domain, topic, paperType, notes, number) {
+        document.getElementById("editFormContainer").style.display = "block";
+        document.getElementById("createFormContainer").style.display = "none"; // Hide create form if open
+        document.getElementById("editContactId").value = id;
+        document.getElementById("editName").value = name;
+        document.getElementById("editDomain").value = domain;
+        document.getElementById("editTopic").value = topic;
+        document.getElementById("editPaperType").value = paperType;
+        document.getElementById("editNotes").value = notes;
+        document.getElementById("editNumber").value = number;
+      }
+
+      function showCreateForm() {
+        document.getElementById("createFormContainer").style.display = "block";
+        document.getElementById("editFormContainer").style.display = "none"; // Hide edit form if open
+      }
+
+      document
+        .getElementById("createContactForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const name = document.getElementById("createName").value;
+          const domain = document.getElementById("createDomain").value;
+          const topic = document.getElementById("createTopic").value;
+          const paperType = document.getElementById("createPaperType").value;
+          const notes = document.getElementById("createNotes").value;
+          const number = document.getElementById("createNumber").value;
+
+          const token = localStorage.getItem("token");
+          try {
+            const response = await fetch(`/admin/contacts`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                name,
+                domain,
+                topic,
+                paperType,
+                notes,
+                number,
+              }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+              fetchContacts();
+              document.getElementById("createFormContainer").style.display =
+                "none";
+            } else {
+              alert(data.message);
+            }
+          } catch (error) {
+            console.error("Error creating contact:", error);
+          }
+        });
+
+      document
+        .getElementById("editContactForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const id = document.getElementById("editContactId").value;
+          const name = document.getElementById("editName").value;
+          const domain = document.getElementById("editDomain").value;
+          const topic = document.getElementById("editTopic").value;
+          const paperType = document.getElementById("editPaperType").value;
+          const notes = document.getElementById("editNotes").value;
+          const number = document.getElementById("editNumber").value;
+
+          const token = localStorage.getItem("token");
+          try {
+            const response = await fetch(`/admin/contacts/${id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                name,
+                domain,
+                topic,
+                paperType,
+                notes,
+                number,
+              }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+              fetchContacts();
+              document.getElementById("editFormContainer").style.display =
+                "none";
+            } else {
+              alert(data.message);
+            }
+          } catch (error) {
+            console.error("Error updating contact:", error);
+          }
+        });
+
+      function logout() {
+        localStorage.removeItem("token");
+        window.location.href = "/admin/login.html";
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        fetchContacts();
+      });
+    </script>
+  </body>
+</html>
