@@ -1,17 +1,17 @@
+const functions = require("firebase-functions");
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-require("dotenv").config();
 
 const app = express();
-const MONGODBURI =
-  "mongodb+srv://abhipippalla:d8E2PpZ6TpBYeMAo@drar.mqlgngv.mongodb.net/drar?retryWrites=true&w=majority";
+
 // MongoDB connection
-const uri = MONGODBURI;
+const uri =
+  "mongodb+srv://abhipippalla:d8E2PpZ6TpBYeMAo@drar.mqlgngv.mongodb.net/drar?retryWrites=true&w=majority";
 mongoose
   .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB connected to drar database"))
+  .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
 // Body parser middleware
@@ -30,14 +30,5 @@ app.get("/", (req, res) => {
 const contactRoute = require("./routes/contact");
 app.use("/contact", contactRoute);
 
-// Admin routes
-const adminRoute = require("./routes/admin");
-app.use("/admin", adminRoute);
-
-// Define a port to listen on
-const PORT = process.env.PORT || 3000;
-
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Export the Express app as a Firebase Function
+exports.app = functions.https.onRequest(app);
